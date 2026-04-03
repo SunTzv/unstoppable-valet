@@ -1,0 +1,10 @@
+# Ignore build artifacts
+build/
+bin/
+*.exe
+*.o
+*.out
+
+# IDE specific
+.vscode/
+.idea/
