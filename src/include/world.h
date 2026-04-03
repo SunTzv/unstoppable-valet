@@ -15,45 +15,36 @@ public:
     std::vector<ParkingSlot> slots;
     Rectangle entrance;
     Rectangle exit;
-    const float borderThickness = 32.0f;
+    const float border = 32.0f;
 
     ParkingLot() {
-        // Entrance: Moved 50px up (was 550, now 500)
+        // Shifted 50px up (Y=500 instead of 550)
         entrance = { 650, 500, 100, 100 };
-        
-        // Exit: Moved 50px up (was 550, now 500)
         exit = { 50, 500, 100, 100 };
 
-        for (int row = 0; row < 6; row++) {
-            for (int col = 0; col < 6; col++) {
-                float x = 100.0f + (col * 105.0f);
-                float y = 50.0f + (row * 75.0f);
-                slots.push_back({{ x, y, 100, 60 }, false});
+        for (int r = 0; r < 6; r++) {
+            for (int c = 0; c < 6; c++) {
+                slots.push_back({{ 100.0f + (c * 105.0f), 50.0f + (r * 75.0f), 100, 60 }, false});
             }
         }
     }
 
     void Draw() {
-        if (background.id != 0) {
-            DrawTexture(background, 0, 0, WHITE);
-        } else {
-            ClearBackground(DARKGRAY); 
-        }
+        if (background.id != 0) DrawTexture(background, 0, 0, WHITE);
+        else ClearBackground(DARKGRAY);
 
-        // Visual Border (The 32px "Wall")
-        DrawRectangle(0, 0, SCREEN_W, borderThickness, Fade(BLACK, 0.4f)); 
-        DrawRectangle(0, SCREEN_H - borderThickness, SCREEN_W, borderThickness, Fade(BLACK, 0.4f)); 
-        DrawRectangle(0, 0, borderThickness, SCREEN_H, Fade(BLACK, 0.4f)); 
-        DrawRectangle(SCREEN_W - borderThickness, 0, borderThickness, SCREEN_H, Fade(BLACK, 0.4f)); 
+        // Visual 32px Border
+        DrawRectangle(0, 0, SCREEN_W, border, Fade(BLACK, 0.4f));
+        DrawRectangle(0, SCREEN_H - border, SCREEN_W, border, Fade(BLACK, 0.4f));
+        DrawRectangle(0, 0, border, SCREEN_H, Fade(BLACK, 0.4f));
+        DrawRectangle(SCREEN_W - border, 0, border, SCREEN_H, Fade(BLACK, 0.4f));
 
-        // Draw Entry/Exit Zones (Shifted Up)
-        DrawRectangleRec(entrance, Fade(LIME, 0.4f));
-        DrawRectangleRec(exit, Fade(RED, 0.4f));
+        DrawRectangleRec(entrance, Fade(LIME, 0.3f));
+        DrawRectangleRec(exit, Fade(RED, 0.3f));
+        DrawText("ENTER", entrance.x + 20, entrance.y + 40, 18, WHITE);
+        DrawText("EXIT", exit.x + 28, exit.y + 40, 18, WHITE);
         
-        DrawText("ENTER", entrance.x + 20, entrance.y + 40, 20, WHITE);
-        DrawText("EXIT", exit.x + 25, exit.y + 40, 20, WHITE);
-
-        // NOTE: Green debug boxes for slots have been removed from Draw()
+        // Green debug boxes removed for clean gameplay
     }
 };
 
