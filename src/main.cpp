@@ -1,76 +1,70 @@
 #include "include/car.h"
 #include "include/player.h"
+#include <vector>
 
 int main() {
     InitWindow(SCREEN_W, SCREEN_H, "UNSTOPPABLE VALET");
     SetTargetFPS(60);
 
-    RenderTexture2D target = LoadRenderTexture(VIRTUAL_W, VIRTUAL_H);
-    SetTextureFilter(target.texture, TEXTURE_FILTER_POINT);
-
     Player player;
-    // Create a few test cars
-    Car testCar({ 50, 50 }, MEDIUM, MAROON);
-    Car truck({ 150, 100 }, LARGE, LIME);
+    std::vector<Car*> parkingLot;
 
-    // --- ASSET LOADING ---
-    // These will fail gracefully if files don't exist yet
-    player.texture = LoadTexture("assets/sprites/valet.png");
-    testCar.texture = LoadTexture("assets/sprites/car_med.png");
-    truck.texture = LoadTexture("assets/sprites/car_large.png");
+    // Load assets
+    player.spriteSheet = LoadTexture("assets/sprites/valet_sheet.png");
+
+    // Let's create the starting cars
+    const char* colors[] = {"cyan.png", "green.png", "orange.png", "pink.png", "yellow.png"};
+    for(int i = 0; i < 5; i++) {
+        Car* c = new Car({ (float)(150 + i * 120), 300.0f });
+        c->texture = LoadTexture(TextFormat("assets/sprites/%s", colors[i]));
+        parkingLot.push_back(c);
+    }
+
+    Car* occupiedCar = nullptr;
 
     while (!WindowShouldClose()) {
-        // 1. UPDATE
+        // --- UPDATE ---
         player.Update();
-        
-        // Check for Car Interaction
+
         if (IsKeyPressed(KEY_SPACE)) {
-            if (player.inCar) {
+            if (player.inCar && occupiedCar != nullptr) {
                 player.inCar = false;
-                // Position player next to car when exiting
-                player.pos = { testCar.pos.x + 15, testCar.pos.y }; 
-                testCar.isOccupied = false;
+                player.pos = { occupiedCar->pos.x - 80, occupiedCar->pos.y }; // Hop out clear of the big car
+                occupiedCar->isOccupied = false;
+                occupiedCar = nullptr;
             } else {
-                // Check if near the sedan
-                if (CheckCollisionCircles(player.pos, 5, testCar.pos, 10)) {
-                    player.inCar = true;
-                    testCar.isOccupied = true;
+                for (auto car : parkingLot) {
+                    // Check interaction near the big car hitbox
+                    if (CheckCollisionCircles(player.pos, 40, car->pos, 40)) {
+                        player.inCar = true;
+                        car->isOccupied = true;
+                        occupiedCar = car;
+                        break;
+                    }
                 }
             }
         }
 
-        testCar.Update();
-        truck.Update();
+        for (auto car : parkingLot) car->Update();
+        if (player.inCar && occupiedCar != nullptr) player.pos = occupiedCar->pos;
 
-        if (player.inCar) player.pos = testCar.pos; // Follow the car
-
-        // 2. DRAW
-        BeginTextureMode(target);
-            ClearBackground(Color{ 50, 50, 55, 255 });
-            
-            // Draw UI Hint
-            DrawText("SPACE to Enter/Exit", 5, 5, 5, RAYWHITE);
-
-            testCar.Draw();
-            truck.Draw();
-            player.Draw();
-        EndTextureMode();
-
+        // --- DRAWING ---
         BeginDrawing();
-            ClearBackground(BLACK);
-            DrawTexturePro(target.texture, 
-                { 0, 0, (float)target.texture.width, (float)-target.texture.height }, 
-                { 0, 0, (float)SCREEN_W, (float)SCREEN_H }, 
-                { 0, 0 }, 0, WHITE);
+            ClearBackground(DARKGRAY); // Your background color/texture goes here
+            
+            for (auto car : parkingLot) car->Draw();
+            player.Draw();
+
+            DrawText("UNSTOPPABLE VALET", 10, 10, 20, RAYWHITE);
         EndDrawing();
     }
 
     // Cleanup
-    UnloadTexture(player.texture);
-    UnloadTexture(testCar.texture);
-    UnloadTexture(truck.texture);
-    UnloadRenderTexture(target);
+    UnloadTexture(player.spriteSheet);
+    for (auto car : parkingLot) {
+        UnloadTexture(car->texture);
+        delete car;
+    }
     CloseWindow();
-
     return 0;
 }
