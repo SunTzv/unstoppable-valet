@@ -11,12 +11,13 @@ public:
     float speed;
     float width = 64; 
     float height = 128;
+    float radius = 45; // Collision radius
     bool isOccupied;
     Texture2D texture;
 
     Car(Vector2 startPos) {
         pos = startPos;
-        rotation = -90.0f; // Start facing Up
+        rotation = 0.0f; 
         speed = 0;
         isOccupied = false;
         texture.id = 0;
@@ -37,6 +38,13 @@ public:
 
         pos.x += cosf(rotation * DEG2RAD) * speed;
         pos.y += sinf(rotation * DEG2RAD) * speed;
+
+        // 32px Border Clamping (Except for the Exit area)
+        // If not near the exit (100, 600), stay inside borders
+        if (!(pos.x > 50 && pos.x < 150 && pos.y > 500)) {
+            pos.x = Clamp(pos.x, 32 + width/2, SCREEN_W - 32 - width/2);
+            pos.y = Clamp(pos.y, 32 + height/2, SCREEN_H - 32 - height/2);
+        }
     }
 
     void Draw() {
@@ -44,8 +52,6 @@ public:
             Rectangle source = { 0, 0, (float)texture.width, (float)texture.height };
             Rectangle dest = { pos.x, pos.y, width, height };
             Vector2 origin = { width / 2, height / 2 };
-
-            // We add 90 degrees because the sprite itself is vertical
             DrawTexturePro(texture, source, dest, origin, rotation + 90.0f, WHITE);
         }
     }
