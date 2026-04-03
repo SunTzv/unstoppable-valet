@@ -17,7 +17,7 @@ public:
     float frameSpeed;
     bool isMoving;
 
-    const int RENDER_SIZE = 48; // Target size
+    const int RENDER_SIZE = 48; 
 
     Player() {
         pos = { 400, 300 };
@@ -32,12 +32,18 @@ public:
     void Update() {
         if (!inCar) {
             isMoving = false;
-            float speed = 3.5f; // Faster for 800x600
+            float speed = 3.5f;
 
             if (IsKeyDown(KEY_W)) { pos.y -= speed; facing = DIR_W; isMoving = true; }
             if (IsKeyDown(KEY_S)) { pos.y += speed; facing = DIR_S; isMoving = true; }
             if (IsKeyDown(KEY_A)) { pos.x -= speed; facing = DIR_A; isMoving = true; }
             if (IsKeyDown(KEY_D)) { pos.x += speed; facing = DIR_D; isMoving = true; }
+
+            // 32px Border Collision for Player
+            // We account for half of the RENDER_SIZE (24px) to keep him fully on screen
+            float margin = 32.0f + 20.0f; 
+            pos.x = Clamp(pos.x, margin, SCREEN_W - margin);
+            pos.y = Clamp(pos.y, margin, SCREEN_H - margin);
 
             if (isMoving) {
                 frameTimer += GetFrameTime();
@@ -53,14 +59,11 @@ public:
 
     void Draw() {
         if (!inCar && spriteSheet.id != 0) {
-            // Assuming your sheet still has 4 columns and 4 rows
             int sourceW = spriteSheet.width / 4;
             int sourceH = spriteSheet.height / 4;
-
             Rectangle sourceRec = { (float)(currentFrame * sourceW), (float)(facing * sourceH), (float)sourceW, (float)sourceH };
             Rectangle destRec = { pos.x, pos.y, (float)RENDER_SIZE, (float)RENDER_SIZE };
             Vector2 origin = { (float)RENDER_SIZE / 2, (float)RENDER_SIZE / 2 };
-
             DrawTexturePro(spriteSheet, sourceRec, destRec, origin, 0.0f, WHITE);
         }
     }
